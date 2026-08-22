@@ -36,9 +36,9 @@ export const Hero: React.FC<HeroProps> = ({
           
           {/* Official Logo presentation in Hero */}
           <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-white/10 backdrop-blur-md border border-purple-400/30 shadow-xl shadow-purple-950/40">
-            <img src="/logo.jpg" alt="Logo" className="w-6 h-6 rounded-md object-cover" />
+            <img src="/logo.jpg" alt="Logo" className="w-10 h-10 rounded-md object-cover bg-white p-0.5" />
             <span className="text-xs font-cinzel font-semibold tracking-widest text-amber-300 uppercase">
-              Esoteric Global Trade Sanctuary
+              REEMAH WORLD IMPORTS
             </span>
           </div>
 

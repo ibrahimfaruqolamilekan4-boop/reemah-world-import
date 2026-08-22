@@ -26,8 +26,8 @@ export const Navbar = ({
           className="flex items-center gap-2 cursor-pointer" 
           onClick={() => setPage("home")}
         >
-          <Crown className="w-6 h-6 text-[#D4A017]" />
-          <h1 className="font-display font-bold text-lg sm:text-xl tracking-wider text-white">
+          <img src="/logo.jpg" alt="Reemah World Imports" className="w-10 h-10 sm:w-12 sm:h-12 object-contain bg-white rounded-md p-1" />
+          <h1 className="font-display font-bold text-lg sm:text-xl tracking-wider text-white hidden sm:block">
             REEMAH WORLD IMPORTS
           </h1>
         </div>

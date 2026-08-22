@@ -219,8 +219,8 @@ const Navbar = ({ page, setPage, cartCount, wishlistCount, isLoggedIn, isAdmin, 
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16 gap-4">
           <button onClick={() => setPage("home")} className="flex items-center gap-2.5 shrink-0 group">
-            <div className="w-10 h-10 rounded-lg overflow-hidden border border-brass shadow-md bg-white">
-              <img src="/logo.jpg" alt="Reemah World Logo" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+            <div className="w-10 h-10 rounded-lg overflow-hidden border border-brass shadow-md bg-white flex items-center justify-center p-0.5">
+              <img src="/logo.jpg" alt="Reemah World Logo" className="w-full h-full object-contain group-hover:scale-105 transition-transform" />
             </div>
             <div className="text-left leading-tight">
               <div className="font-display text-porcelain text-[15px] font-bold tracking-wide">Reemah World Imports</div>
@@ -299,7 +299,7 @@ const Hero = ({ setPage }) => (
     <div className="max-w-6xl mx-auto px-6 pt-16 pb-14 sm:pt-24 sm:pb-20 grid md:grid-cols-2 gap-10 items-center relative z-10">
       <div>
         <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/10 border border-brass/40 text-brass text-xs font-mono mb-4 backdrop-blur-sm">
-          <img src="/logo.jpg" alt="Logo" className="w-4 h-4 rounded object-cover" />
+          <div className="w-5 h-5 bg-white rounded flex items-center justify-center p-0.5"><img src="/logo.jpg" alt="Logo" className="w-full h-full object-contain" /></div>
           <span>Esoteric Sanctuary Import · Lagos &amp; Global</span>
         </div>
         <h1 className="font-display text-porcelain text-4xl sm:text-6xl leading-[1.08] mt-2 font-bold tracking-tight">
@@ -322,8 +322,8 @@ const Hero = ({ setPage }) => (
         </div>
       </div>
       <div className="relative">
-        <div className="relative rounded-2xl overflow-hidden shadow-2xl border-2 border-brass/50 aspect-square bg-navy-deep">
-          <img src="/logo.jpg" alt="Reemah World Logo Emblem" className="w-full h-full object-cover opacity-95 hover:scale-105 transition-transform duration-700" />
+        <div className="relative rounded-2xl overflow-hidden shadow-2xl border-2 border-brass/50 aspect-square bg-white flex items-center justify-center p-4">
+          <img src="/logo.jpg" alt="Reemah World Logo Emblem" className="w-full h-full object-contain hover:scale-105 transition-transform duration-700" />
           <div className="absolute inset-0 bg-gradient-to-t from-navy-deep/90 via-transparent to-transparent flex items-end p-6">
             <div className="text-white space-y-1">
               <p className="text-xs font-mono text-brass tracking-widest uppercase">Verified Authentic</p>
