@@ -1,11 +1,15 @@
 import express from 'express';
+import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { pool, initNeonTables } from './src/lib/neon.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const _dirname = process.cwd();
+
+async function startServer() {
 const app = express();
-const PORT = Number(process.env.PORT) || 3000;
+const PORT = 3000;
 
 app.use(express.json({ limit: '10mb' }));
 
@@ -18,7 +22,7 @@ app.get('/api/db-status', (req, res) => {
     connected: !!process.env.DATABASE_URL,
     database: process.env.DATABASE_URL ? 'Neon PostgreSQL' : 'LocalStorage / Memory Fallback',
     message: process.env.DATABASE_URL ? 'Connected to Neon database successfully' : 'Please configure DATABASE_URL in secrets for Neon database persistence.'
-  });
+      });
 });
 
 // Products APIs
@@ -185,13 +189,22 @@ app.post('/api/users', async (req, res) => {
   }
 });
 
-const distPath = path.join(__dirname, 'dist');
-app.use(express.static(distPath));
+  if (process.env.NODE_ENV !== "production") {
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: "spa",
+    });
+    app.use(vite.middlewares);
+  } else {
+    const distPath = path.join(_dirname, 'dist');
+    app.use(express.static(distPath));
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
+  }
 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(distPath, 'index.html'));
-});
-
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT} with Neon Database (pg) support`);
-});
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT} with Neon Database (pg) support`);
+  });
+}
+startServer();

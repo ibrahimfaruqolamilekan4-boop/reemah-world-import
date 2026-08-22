@@ -1592,6 +1592,7 @@ export default function ReemahWorldImport() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
 
   const [posts, setPosts] = useState(() => {
     try {
@@ -1752,7 +1753,7 @@ export default function ReemahWorldImport() {
         createdAt: Date.now(),
         images: [newProduct.mediaUrl, ...(newProduct.additionalImages || [])],
         videoUrl: newProduct.videoUrl || undefined,
-        adminId: "admin-1"
+        adminId: ADMIN_PROFILES.find(a => a.email === userEmail)?.id || ADMIN_PROFILES[0].id
       };
 
       await fetch('/api/posts', {
@@ -1875,6 +1876,7 @@ export default function ReemahWorldImport() {
   };
 
   const handleLogin = (name, email) => {
+    setUserEmail(email.trim().toLowerCase());
     const recognizedAdmin = ADMIN_EMAILS.includes(email.trim().toLowerCase());
     setUserName(name);
     setIsLoggedIn(true);
