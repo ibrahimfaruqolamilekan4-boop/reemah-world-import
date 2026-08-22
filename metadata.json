@@ -1,0 +1,7 @@
+{
+  "name": "Reemah World Import",
+  "description": "Premium kitchen, home interior & electrical goods directly from China with community feed, cart, Paystack checkout, admin dashboard & order tracking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
