@@ -135,8 +135,10 @@ const compressImage = (file: File): Promise<string> => {
     };
 
     try {
-      await fetch('/api/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newProd) });
-      await fetch('/api/posts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newPost) });
+      const p1 = await fetch('/api/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newProd) });
+      if(!p1.ok) throw new Error('Product Error: ' + await p1.text());
+      const p2 = await fetch('/api/posts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newPost) });
+      if(!p2.ok) throw new Error('Post Error: ' + await p2.text());
       
       setProducts((prev: any) => [newProd, ...prev]);
       if (typeof setPosts === 'function') {
@@ -147,7 +149,7 @@ const compressImage = (file: File): Promise<string> => {
       setPostTitle(""); setPostPrice(""); setMultiPics([]); setVideoDemo(""); setPostCaption("");
     } catch (e) {
       console.error(e);
-      toast("Error saving to database.");
+      toast("Error: " + (e as Error).message);
     }
   };
 
@@ -171,14 +173,15 @@ const compressImage = (file: File): Promise<string> => {
     };
     
     try {
-      await fetch('/api/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newProd) });
+      const res = await fetch('/api/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newProd) });
+      if(!res.ok) throw new Error(await res.text());
       setProducts((prev: any) => [newProd, ...prev]);
       toast("Product added successfully!");
       setTab("products");
       setProdName(""); setProdPrice(""); setSinglePic(""); setProdOldPrice(""); setProdDesc(""); setProdStock("");
     } catch(e) {
       console.error(e);
-      toast("Error saving product.");
+      toast("Error: " + (e as Error).message);
     }
   };
 
