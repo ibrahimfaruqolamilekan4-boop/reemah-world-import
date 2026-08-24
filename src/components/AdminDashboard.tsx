@@ -34,15 +34,58 @@ export const AdminDashboard = ({ products, setProducts, toast, orders = [], onUp
     return matchSearch && matchStatus;
   });
 
-  const handleMultiPic = (e: any) => {
-    const files = Array.from(e.target.files);
-    files.forEach((file: any) => {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        if (ev.target?.result) setMultiPics(prev => [...prev, ev.target!.result as string]);
+
+const compressImage = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const max_size = 1200;
+        
+        if (width > height) {
+          if (width > max_size) {
+            height = Math.round((height *= max_size / width));
+            width = max_size;
+          }
+        } else {
+          if (height > max_size) {
+            width = Math.round((width *= max_size / height));
+            height = max_size;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        // compress to JPEG with 0.7 quality
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
       };
-      reader.readAsDataURL(file);
-    });
+      img.onerror = (err) => reject(err);
+    };
+    reader.onerror = (err) => reject(err);
+  });
+};
+
+  const handleMultiPic = async (e: any) => {
+    const files = Array.from(e.target.files) as File[];
+    for (const file of files) {
+      if (file.type.startsWith('image/')) {
+        try {
+          const compressed = await compressImage(file);
+          setMultiPics(prev => [...prev, compressed]);
+        } catch(err) {
+          console.error("Compression error", err);
+        }
+      }
+    }
   };
 
   const handleVideo = (e: any) => {
@@ -71,19 +114,44 @@ export const AdminDashboard = ({ products, setProducts, toast, orders = [], onUp
       desc: postCaption,
       stock: 50,
       mediaUrl: multiPics.length > 0 ? multiPics[0] : "",
+      additionalImages: multiPics.slice(1),
       videoUrl: videoDemo,
       rating: 5.0,
       createdAt: new Date().toISOString()
     };
     
-    setProducts((prev: any) => [newProd, ...prev]);
-    toast("Published Post to Feed & Store!");
-    setTab("products");
-    
-    setPostTitle(""); setPostPrice(""); setMultiPics([]); setVideoDemo(""); setPostCaption("");
+    const adminId = poster.includes("Reemah") ? "admin-reemah" : "admin-fatima";
+    const newPost = {
+      id: "post_" + Date.now(),
+      productId: newId,
+      caption: `✨ New Arrival! ${postTitle}\n\n${postCaption}\n\nPrice: ₦${Number(postPrice).toLocaleString()}`,
+      likes: 0,
+      likedByMe: false,
+      comments: [],
+      createdAt: Date.now(),
+      images: multiPics,
+      videoUrl: videoDemo,
+      adminId: adminId
+    };
+
+    try {
+      await fetch('/api/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newProd) });
+      await fetch('/api/posts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newPost) });
+      
+      setProducts((prev: any) => [newProd, ...prev]);
+      if (typeof setPosts === 'function') {
+        setPosts((prev: any) => [newPost, ...prev]);
+      }
+      toast("Published Post to Feed & Store!");
+      setTab("products");
+      setPostTitle(""); setPostPrice(""); setMultiPics([]); setVideoDemo(""); setPostCaption("");
+    } catch (e) {
+      console.error(e);
+      toast("Error saving to database.");
+    }
   };
 
-  const handleSimpleUpload = () => {
+  const handleSimpleUpload = async () => {
     if (!prodName || !prodPrice || !singlePic) {
       toast("Please provide name, price, and picture.");
       return;
@@ -97,14 +165,21 @@ export const AdminDashboard = ({ products, setProducts, toast, orders = [], onUp
       desc: prodDesc,
       stock: Number(prodStock) || 10,
       mediaUrl: singlePic,
+      additionalImages: [],
       rating: 5.0,
       createdAt: new Date().toISOString()
     };
-    setProducts((prev: any) => [newProd, ...prev]);
-    toast("Product added successfully!");
-    setTab("products");
     
-    setProdName(""); setProdPrice(""); setSinglePic(""); setProdOldPrice(""); setProdDesc(""); setProdStock("");
+    try {
+      await fetch('/api/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newProd) });
+      setProducts((prev: any) => [newProd, ...prev]);
+      toast("Product added successfully!");
+      setTab("products");
+      setProdName(""); setProdPrice(""); setSinglePic(""); setProdOldPrice(""); setProdDesc(""); setProdStock("");
+    } catch(e) {
+      console.error(e);
+      toast("Error saving product.");
+    }
   };
 
   return (
