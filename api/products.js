@@ -22,6 +22,14 @@ async function ensureTable() {
   `);
 }
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb',
+    },
+  },
+};
+
 export default async function handler(req, res) {
   // ── CORS (so your frontend can call this) ──────────────────
   res.setHeader('Access-Control-Allow-Origin', '*');
