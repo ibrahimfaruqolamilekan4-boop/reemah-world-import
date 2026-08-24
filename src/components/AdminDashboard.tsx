@@ -3,7 +3,7 @@ import { ShieldCheck, ImageIcon, Video, CheckCircle, Package } from 'lucide-reac
 
 const CATEGORIES = ["All", "Kitchenware", "Home Interior", "Electrical Appliances", "Fashion"];
 
-export const AdminDashboard = ({ products, setProducts, toast, orders = [], onUpdateOrderStatus }: any) => {
+export const AdminDashboard = ({ products, setProducts, setPosts, toast, orders = [], onUpdateOrderStatus }: any) => {
   const [tab, setTab] = useState("newPost");
   
   // New Post State
