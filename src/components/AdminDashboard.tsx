@@ -107,13 +107,13 @@ const compressImage = (file: File): Promise<string> => {
     const newId = "p_" + Date.now();
     const newProd = {
       id: newId,
-      title: postTitle,
+      name: postTitle,
       category: postCategory,
       price: Number(postPrice),
       oldPrice: Number(postPrice) * 1.2,
       desc: postCaption,
       stock: 50,
-      mediaUrl: multiPics.length > 0 ? multiPics[0] : "",
+      img: multiPics.length > 0 ? multiPics[0] : "",
       additionalImages: multiPics.slice(1),
       videoUrl: videoDemo,
       rating: 5.0,
@@ -160,13 +160,13 @@ const compressImage = (file: File): Promise<string> => {
     }
     const newProd = {
       id: "p_" + Date.now(),
-      title: prodName,
+      name: prodName,
       category: prodCategory,
       price: Number(prodPrice),
       oldPrice: prodOldPrice ? Number(prodOldPrice) : undefined,
       desc: prodDesc,
       stock: Number(prodStock) || 10,
-      mediaUrl: singlePic,
+      img: singlePic,
       additionalImages: [],
       rating: 5.0,
       createdAt: new Date().toISOString()
