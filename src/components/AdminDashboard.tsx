@@ -79,23 +79,47 @@ const compressImage = (file: File): Promise<string> => {
     for (const file of files) {
       if (file.type.startsWith('image/')) {
         try {
+          toast("Compressing & uploading image...");
           const compressed = await compressImage(file);
-          setMultiPics(prev => [...prev, compressed]);
+          const formData = new FormData();
+          formData.append("file", compressed);
+          formData.append("upload_preset", "reehmah");
+          const res = await fetch("https://api.cloudinary.com/v1_1/roheemon/image/upload", { method: 'POST', body: formData });
+          const data = await res.json();
+          if (data.secure_url) {
+            setMultiPics(prev => [...prev, data.secure_url]);
+            toast("Image uploaded successfully!");
+          } else {
+            toast("Upload failed: " + (data.error?.message || ""));
+          }
         } catch(err) {
-          console.error("Compression error", err);
+          console.error("Upload error", err);
+          toast("Image upload failed.");
         }
       }
     }
   };
 
-  const handleVideo = (e: any) => {
+  const handleVideo = async (e: any) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        if (ev.target?.result) setVideoDemo(ev.target.result as string);
-      };
-      reader.readAsDataURL(file);
+      try {
+        toast("Uploading video to Cloudinary (this may take a minute)...");
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", "reehmah");
+        const res = await fetch("https://api.cloudinary.com/v1_1/roheemon/video/upload", { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.secure_url) {
+          setVideoDemo(data.secure_url);
+          toast("Video uploaded successfully!");
+        } else {
+          toast("Video upload failed: " + (data.error?.message || "Unknown error"));
+        }
+      } catch (err) {
+        toast("Video upload failed.");
+        console.error(err);
+      }
     }
   };
 
@@ -282,12 +306,25 @@ const compressImage = (file: File): Promise<string> => {
           
           <div className="space-y-2">
             <label className="block text-xs font-bold text-[#4A1C6B] uppercase">Single Photo Upload</label>
-            <input type="file" accept="image/*" onChange={(e: any) => {
+            <input type="file" accept="image/*" onChange={async (e: any) => {
               const file = e.target.files[0];
               if(file) {
-                const reader = new FileReader();
-                reader.onload = ev => { if(ev.target?.result) setSinglePic(ev.target.result as string); };
-                reader.readAsDataURL(file);
+                try {
+                  toast("Uploading image to Cloudinary...");
+                  const formData = new FormData();
+                  formData.append("file", file);
+                  formData.append("upload_preset", "reehmah");
+                  const res = await fetch("https://api.cloudinary.com/v1_1/roheemon/image/upload", { method: 'POST', body: formData });
+                  const data = await res.json();
+                  if (data.secure_url) {
+                    setSinglePic(data.secure_url);
+                    toast("Image uploaded successfully!");
+                  } else {
+                    toast("Upload failed");
+                  }
+                } catch(err) {
+                  toast("Image upload failed");
+                }
               }
             }} className="w-full text-sm" />
             {singlePic && <img src={singlePic} className="w-20 h-20 object-cover rounded-xl mt-2 border border-gray-200" alt="preview" />}
