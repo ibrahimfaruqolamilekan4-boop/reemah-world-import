@@ -991,7 +991,7 @@ const ProductModal = ({ product, onClose, onAddToCart, onToggleWishlist, isWishl
                   onClick={() => setModalMediaMode('images')}
                   className={`flex-1 py-2 text-center transition flex items-center justify-center gap-1 ${modalMediaMode === 'images' ? 'bg-brass text-navy font-bold' : 'text-stone-300 hover:text-white'}`}
                 >
-                  🖼️ Photos (${validImages.length})
+                  🖼️ Photos ({validImages.length})
                 </button>
                 <button
                   type="button"
@@ -1224,13 +1224,18 @@ const ProductModal = ({ product, onClose, onAddToCart, onToggleWishlist, isWishl
   );
 };
 
-const ShareModal = ({ open, onClose, title, text, url, toast }) => {
+const ShareModal = ({ open, onClose, title, text, url, toast }: any) => {
   if (!open) return null;
-  const shareUrl = url || window.location.href;
-  const shareText = text || title || "Check out this amazing product on Reemah World Import!";
+  const shareUrl = typeof url === 'string' && url ? url : window.location.href;
+  const shareText = typeof text === 'string' && text ? text : (typeof title === 'string' && title ? title : "Check out this amazing product on Reemah World Import!");
+  const shareTitle = typeof title === 'string' && title ? title : "Reemah World Imports";
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(shareUrl);
+    try {
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(shareUrl).catch(() => {});
+      }
+    } catch (e) {}
     toast("Link copied to clipboard!");
     onClose();
   };
@@ -1238,7 +1243,7 @@ const ShareModal = ({ open, onClose, title, text, url, toast }) => {
   const handleNativeShare = async () => {
     if (navigator.share) {
       try {
-        await navigator.share({ title, text: shareText, url: shareUrl });
+        await navigator.share({ title: shareTitle, text: shareText, url: shareUrl });
         onClose();
       } catch (err) {
         // user cancelled or failed
@@ -1896,7 +1901,17 @@ export default function ReemahWorldImport() {
     }
     toast(`Product removed successfully`);
   };
-  const [shareData, setShareData] = useState(null);
+  const [shareData, setShareData] = useState<{ title?: string; text?: string; url?: string } | null>(null);
+
+  const handleOpenShare = (data: any) => {
+    if (data && typeof data === 'object') {
+      setShareData({
+        title: typeof data.title === 'string' ? data.title : 'Reemah World Imports',
+        text: typeof data.text === 'string' ? data.text : '',
+        url: typeof data.url === 'string' ? data.url : window.location.href,
+      });
+    }
+  };
 
   const [reviewsMap, setReviewsMap] = useState<Record<string, Array<{ id: string; user: string; rating: number; text: string; date: string; verified: boolean }>>>({});
 
@@ -2027,7 +2042,7 @@ export default function ReemahWorldImport() {
             posts={activePosts} products={products} search={search} categoryFilter={categoryFilter} setCategoryFilter={setCategoryFilter}
             onLike={handleLike} onComment={handleComment} onOpenProduct={setSelectedProduct} onAddToCart={addToCart}
             onToggleWishlist={toggleWishlist} wishlist={wishlist} isLoggedIn={isLoggedIn} onOpenLogin={() => setLoginOpen(true)}
-            onShare={setShareData} onOpenAdminProfile={(admin) => setAdminProfileModalAdmin(admin)}
+            onShare={handleOpenShare} onOpenAdminProfile={(admin) => setAdminProfileModalAdmin(admin)}
           />
         )}
         {page === "checkout" && (
@@ -2079,7 +2094,7 @@ export default function ReemahWorldImport() {
       <ProductModal
         product={selectedProduct} onClose={() => setSelectedProduct(null)} onAddToCart={addToCart}
         onToggleWishlist={toggleWishlist} isWishlisted={selectedProduct ? wishlist.includes(selectedProduct.id) : false}
-        onShare={setShareData} reviewsMap={reviewsMap} onAddReview={handleAddReview}
+        onShare={handleOpenShare} reviewsMap={reviewsMap} onAddReview={handleAddReview}
         userName={userName} isLoggedIn={isLoggedIn} onOpenLogin={() => setLoginOpen(true)}
       />
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} cart={cart} updateQty={updateQty} removeItem={removeItem} total={cartTotal} onCheckout={goCheckout} />
