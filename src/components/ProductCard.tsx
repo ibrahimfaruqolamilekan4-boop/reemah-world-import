@@ -1,23 +1,45 @@
 import React from 'react';
-import { Heart, Star } from 'lucide-react';
+import { Heart, Star, Image as ImageIcon, Video } from 'lucide-react';
 
 export const ProductCard = ({ product: p, onOpen, onAddToCart, onToggleWishlist, isWishlisted }: any) => {
   const hasSale = p.oldPrice && p.oldPrice > p.price;
-  
+  const imageSrc = p.img || p.mediaUrl || p.images?.[0] || 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80';
+  const hasMultipleImages = (p.images && p.images.length > 1) || (p.additionalImages && p.additionalImages.length > 0);
+  const hasVideo = Boolean(p.videoUrl);
+
   return (
     <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition group flex flex-col relative h-full">
       <div className="relative aspect-[4/5] bg-gray-100 overflow-hidden cursor-pointer" onClick={() => onOpen(p)}>
-        <img src={p.mediaUrl} alt={p.title || p.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+        <img 
+          src={imageSrc} 
+          alt={p.title || p.name} 
+          className="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
+        />
         
         {hasSale && (
           <div className="absolute top-2 left-2 bg-[#D4A017] text-[#4A1C6B] text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm z-10">
             SALE
           </div>
         )}
+
+        {/* Media Badges */}
+        <div className="absolute bottom-2 left-2 flex gap-1 z-10">
+          {hasVideo && (
+            <span className="bg-black/70 backdrop-blur-xs text-white text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 font-mono">
+              <Video className="w-3 h-3 text-[#D4A017]" /> Video
+            </span>
+          )}
+          {hasMultipleImages && (
+            <span className="bg-black/70 backdrop-blur-xs text-white text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 font-mono">
+              <ImageIcon className="w-3 h-3 text-[#D4A017]" /> Photos
+            </span>
+          )}
+        </div>
         
         <button 
           onClick={(e) => { e.stopPropagation(); onToggleWishlist(p.id); }}
           className="absolute top-2 right-2 p-2 bg-white/80 backdrop-blur rounded-full shadow-sm hover:bg-white transition z-10"
+          aria-label="Wishlist"
         >
           <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-[#D4A017] text-[#D4A017]' : 'text-gray-400'}`} />
         </button>
@@ -31,7 +53,7 @@ export const ProductCard = ({ product: p, onOpen, onAddToCart, onToggleWishlist,
         
         <div className="flex items-center gap-1 mt-1 mb-2">
           <Star className="w-3 h-3 fill-[#D4A017] text-[#D4A017]" />
-          <span className="text-[10px] font-bold text-[#4A1C6B]">{p.rating || "5.0"}</span>
+          <span className="text-[10px] font-bold text-[#4A1C6B]">{p.rating || p.ratingAverage || "5.0"}</span>
         </div>
         
         <div className="mt-auto pt-2 flex flex-col gap-2">

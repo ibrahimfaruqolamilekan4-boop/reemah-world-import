@@ -617,7 +617,7 @@ const FeedPost: React.FC<any> = ({ post, product, onLike, onComment, onOpenProdu
             <span className="font-mono text-xs">{post.comments.length}</span>
           </button>
           <button
-            onClick={() => onShare({ title: product.name, text: `${product.name} — ${NGN(product.price)}: ${post.caption}` })}
+            onClick={() => onShare({ title: product?.name || post.caption || "Reemah World Imports", text: `${product?.name || 'Reemah Import'} — ${product?.price ? NGN(product.price) : ''}: ${post.caption}` })}
             className="flex items-center gap-1.5 text-sm ml-auto text-navy hover:text-brass transition"
             aria-label="Share post"
           >
@@ -625,15 +625,17 @@ const FeedPost: React.FC<any> = ({ post, product, onLike, onComment, onOpenProdu
           </button>
         </div>
         <p className="text-sm mt-2.5 leading-relaxed">{post.caption}</p>
-        <div onClick={() => onOpenProduct(product)} role="button" tabIndex={0} className="flex items-center justify-between mt-3 bg-sand rounded-md p-2.5 w-full text-left cursor-pointer">
-          <div>
-            <div className="text-sm font-medium">{product.name}</div>
-            <div className="font-display text-brass font-semibold text-sm mt-0.5">{NGN(product.price)}</div>
+        {product && (
+          <div onClick={() => onOpenProduct(product)} role="button" tabIndex={0} className="flex items-center justify-between mt-3 bg-sand rounded-md p-2.5 w-full text-left cursor-pointer">
+            <div>
+              <div className="text-sm font-medium">{product.name}</div>
+              <div className="font-display text-brass font-semibold text-sm mt-0.5">{NGN(product.price)}</div>
+            </div>
+            <button onClick={(e) => { e.stopPropagation(); onAddToCart(product); }} className="btn-primary text-xs px-3 py-2 rounded-full font-semibold flex items-center gap-1">
+              <ShoppingCart size={12} /> Add
+            </button>
           </div>
-          <button onClick={(e) => { e.stopPropagation(); onAddToCart(product); }} className="btn-primary text-xs px-3 py-2 rounded-full font-semibold flex items-center gap-1">
-            <ShoppingCart size={12} /> Add
-          </button>
-        </div>
+        )}
 
         {showComments && (
           <div className="mt-3 border-t border-line pt-3 space-y-2 fade-in">
@@ -767,7 +769,7 @@ const TikTokReelsCard: React.FC<any> = ({ post, product, onLike, onComment, onOp
           <span className="text-white text-xs font-mono mt-1 font-semibold drop-shadow">{post.comments.length}</span>
         </button>
 
-        <button onClick={() => onShare({ title: product.name, text: `${product.name} — ${NGN(product.price)}: ${post.caption}` })} className="flex flex-col items-center group">
+        <button onClick={() => onShare({ title: product?.name || post.caption || "Reemah World Imports", text: `${product?.name || 'Reemah Import'} — ${product?.price ? NGN(product.price) : ''}: ${post.caption}` })} className="flex flex-col items-center group">
           <div className="w-12 h-12 rounded-full bg-black/60 backdrop-blur-md text-white flex items-center justify-center group-hover:bg-black/80 transition">
             <Share2 size={24} />
           </div>
@@ -780,18 +782,20 @@ const TikTokReelsCard: React.FC<any> = ({ post, product, onLike, onComment, onOp
         <p className="text-white text-sm leading-relaxed drop-shadow font-medium">{post.caption}</p>
 
         {/* Product Card Quick Bar */}
-        <div onClick={() => onOpenProduct(product)} className="bg-white/15 backdrop-blur-md border border-white/20 rounded-xl p-3 flex items-center justify-between cursor-pointer hover:bg-white/25 transition shadow-xl">
-          <div className="flex items-center gap-3">
-            <img src={product.img} alt={product.name} className="w-12 h-12 rounded-lg object-cover border border-white/20" />
-            <div>
-              <div className="text-white text-sm font-semibold line-clamp-1">{product.name}</div>
-              <div className="text-brass font-display font-bold text-sm">{NGN(product.price)}</div>
+        {product && (
+          <div onClick={() => onOpenProduct(product)} className="bg-white/15 backdrop-blur-md border border-white/20 rounded-xl p-3 flex items-center justify-between cursor-pointer hover:bg-white/25 transition shadow-xl">
+            <div className="flex items-center gap-3">
+              <img src={product.img || product.mediaUrl || FALLBACK_PRODUCT_IMAGE} alt={product.name} className="w-12 h-12 rounded-lg object-cover border border-white/20" />
+              <div>
+                <div className="text-white text-sm font-semibold line-clamp-1">{product.name}</div>
+                <div className="text-brass font-display font-bold text-sm">{NGN(product.price)}</div>
+              </div>
             </div>
+            <button onClick={(e) => { e.stopPropagation(); onAddToCart(product); }} className="btn-primary text-xs px-4 py-2.5 rounded-full font-semibold flex items-center gap-1.5 shadow-lg shrink-0">
+              <ShoppingCart size={14} /> Buy Now
+            </button>
           </div>
-          <button onClick={(e) => { e.stopPropagation(); onAddToCart(product); }} className="btn-primary text-xs px-4 py-2.5 rounded-full font-semibold flex items-center gap-1.5 shadow-lg shrink-0">
-            <ShoppingCart size={14} /> Buy Now
-          </button>
-        </div>
+        )}
 
         {/* Comments Drawer / Overlay */}
         {showComments && (
@@ -954,6 +958,18 @@ const ProductModal = ({ product, onClose, onAddToCart, onToggleWishlist, isWishl
 
   if (!product) return null;
 
+  const rawImages = [
+    ...(product.images || []),
+    product.img,
+    product.mediaUrl,
+    ...(product.additionalImages || []),
+    FALLBACK_PRODUCT_IMAGE
+  ];
+  const validImages = Array.from(new Set(rawImages.filter((src: any) => src && typeof src === 'string' && src.trim() !== "")));
+  const videoSrc = product.videoUrl;
+  const [modalMediaMode, setModalMediaMode] = useState<'video' | 'images'>(videoSrc && !validImages.length ? 'video' : 'images');
+  const [activeModalImgIdx, setActiveModalImgIdx] = useState(0);
+
   const productReviews = reviewsMap[product.id] || [];
 
   const handleSubmitReview = (e: React.FormEvent) => {
@@ -967,7 +983,84 @@ const ProductModal = ({ product, onClose, onAddToCart, onToggleWishlist, isWishl
     <div className="fixed inset-0 z-[80] bg-navy-deep/60 flex items-end sm:items-center justify-center p-0 sm:p-6 fade-in" onClick={onClose}>
       <div className="bg-porcelain rounded-t-xl sm:rounded-xl max-w-2xl w-full max-h-[92vh] overflow-y-auto scrollbar-none flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="grid sm:grid-cols-2">
-          <img src={product.img} alt={product.name} className="w-full h-72 sm:h-full object-cover sm:rounded-l-xl" />
+          <div className="flex flex-col bg-sand/30 sm:rounded-l-xl overflow-hidden">
+            {videoSrc && validImages.length > 0 && (
+              <div className="flex bg-stone-900 text-xs font-mono border-b border-line">
+                <button
+                  type="button"
+                  onClick={() => setModalMediaMode('images')}
+                  className={`flex-1 py-2 text-center transition flex items-center justify-center gap-1 ${modalMediaMode === 'images' ? 'bg-brass text-navy font-bold' : 'text-stone-300 hover:text-white'}`}
+                >
+                  🖼️ Photos (${validImages.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setModalMediaMode('video')}
+                  className={`flex-1 py-2 text-center transition flex items-center justify-center gap-1 ${modalMediaMode === 'video' ? 'bg-brass text-navy font-bold' : 'text-stone-300 hover:text-white'}`}
+                >
+                  🎥 Video Demo
+                </button>
+              </div>
+            )}
+            
+            <div className="relative w-full h-72 sm:h-80 bg-black flex items-center justify-center">
+              {modalMediaMode === 'video' && videoSrc ? (
+                <video src={videoSrc} controls className="w-full h-full object-contain" autoPlay />
+              ) : (
+                <>
+                  <img
+                    src={validImages[activeModalImgIdx] || product.img || product.mediaUrl || FALLBACK_PRODUCT_IMAGE}
+                    alt={product.name || product.title}
+                    className="w-full h-full object-cover"
+                  />
+                  {validImages.length > 1 && (
+                    <div className="absolute bottom-2 right-2 bg-black/70 text-white text-[10px] px-2 py-0.5 rounded font-mono">
+                      {activeModalImgIdx + 1} / {validImages.length}
+                    </div>
+                  )}
+                  {validImages.length > 1 && (
+                    <div className="absolute inset-x-2 top-1/2 -translate-y-1/2 flex justify-between pointer-events-none">
+                      {activeModalImgIdx > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setActiveModalImgIdx(i => i - 1)}
+                          className="w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center pointer-events-auto hover:bg-black text-sm"
+                        >
+                          ‹
+                        </button>
+                      )}
+                      <div className="ml-auto">
+                        {activeModalImgIdx < validImages.length - 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setActiveModalImgIdx(i => i + 1)}
+                            className="w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center pointer-events-auto hover:bg-black text-sm"
+                          >
+                            ›
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {validImages.length > 1 && modalMediaMode === 'images' && (
+              <div className="flex gap-1.5 p-2 bg-stone-900 overflow-x-auto">
+                {validImages.map((src: string, idx: number) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setActiveModalImgIdx(idx)}
+                    className={`w-12 h-12 rounded overflow-hidden border-2 transition shrink-0 ${activeModalImgIdx === idx ? 'border-brass' : 'border-transparent opacity-60'}`}
+                  >
+                    <img src={src} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <div className="p-6 relative">
             <button onClick={onClose} className="absolute top-4 right-4 text-slate hover:text-navy" aria-label="Close"><X size={20} /></button>
             <div className="manifest-tag">{product.category}</div>
@@ -1547,7 +1640,16 @@ const TemuRewardsStrip = ({ setPage, onOpenChat }) => (
 );
 
 export default function ReemahWorldImport() {
-  const [products, setProducts] = useState<any[]>(PRODUCTS);
+  const [products, setProducts] = useState<any[]>(() => {
+    try {
+      const saved = localStorage.getItem('reemah_products');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return PRODUCTS;
+  });
   const [toastMsg, setToastMsg] = useState("");
   const toast = (msg: string) => {
     setToastMsg(msg);
