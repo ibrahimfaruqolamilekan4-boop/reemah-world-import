@@ -37,12 +37,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     return '₦' + price.toLocaleString();
   };
 
+  const [errorMessage, setErrorMessage] = useState('');
+
   const handleCheckoutSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email || !phone || !street || !city) {
-      alert('Please fill in all required delivery and contact details.');
+      setErrorMessage('Please fill in all required delivery and contact details.');
       return;
     }
+    setErrorMessage('');
 
     setIsProcessing(true);
 
@@ -159,6 +162,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
               {/* Customer Info */}
               <div className="space-y-4">
+                {errorMessage && (
+                  <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
+                    {errorMessage}
+                  </div>
+                )}
                 <h4 className="font-serif font-bold text-base text-stone-900">1. Contact & Delivery Details</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>

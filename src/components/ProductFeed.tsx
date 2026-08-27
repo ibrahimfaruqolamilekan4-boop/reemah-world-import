@@ -32,17 +32,24 @@ export const ProductFeed: React.FC<ProductFeedProps> = ({
     return '₦' + price.toLocaleString();
   };
 
-  const handleShare = (product: Product) => {
-    const text = `Check out "${product.title}" (${formatPrice(product.price)}) at Reemah World Import! Premium goods direct from China.`;
-    if (navigator.share) {
-      navigator.share({
-        title: product.title,
-        text: text,
-        url: window.location.href,
-      }).catch(() => {});
-    } else {
-      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + window.location.href)}`;
-      window.open(whatsappUrl, '_blank');
+  const handleShare = async (product: Product) => {
+    const title = typeof product.title === 'string' ? product.title : 'Reemah World Import';
+    const text = `Check out "${title}" (${formatPrice(product.price)}) at Reemah World Import! Premium goods direct from China.`;
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({ title, text, url });
+        return;
+      } catch {
+        // Fallback to clipboard
+      }
+    }
+
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(`${text} ${url}`);
+      } catch {}
     }
   };
 

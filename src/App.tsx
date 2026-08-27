@@ -1226,13 +1226,13 @@ const ProductModal = ({ product, onClose, onAddToCart, onToggleWishlist, isWishl
 
 const ShareModal = ({ open, onClose, title, text, url, toast }: any) => {
   if (!open) return null;
-  const shareUrl = typeof url === 'string' && url ? url : window.location.href;
+  const shareUrl = typeof url === 'string' && url ? url : (typeof window !== 'undefined' ? window.location.href : '');
   const shareText = typeof text === 'string' && text ? text : (typeof title === 'string' && title ? title : "Check out this amazing product on Reemah World Import!");
   const shareTitle = typeof title === 'string' && title ? title : "Reemah World Imports";
 
   const handleCopy = () => {
     try {
-      if (navigator.clipboard?.writeText) {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
         navigator.clipboard.writeText(shareUrl).catch(() => {});
       }
     } catch (e) {}
@@ -1241,17 +1241,23 @@ const ShareModal = ({ open, onClose, title, text, url, toast }: any) => {
   };
 
   const handleNativeShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: shareTitle, text: shareText, url: shareUrl });
+    try {
+      if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+        await navigator.share({
+          title: String(shareTitle),
+          text: String(shareText),
+          url: String(shareUrl)
+        });
         onClose();
-      } catch (err) {
-        // user cancelled or failed
+        return;
       }
-    } else {
-      handleCopy();
+    } catch (err) {
+      // User cancelled, permission denied in iframe, or clone error - fallback gracefully
     }
+    handleCopy();
   };
+
+  const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
   return (
     <div className="fixed inset-0 z-[95] bg-navy-deep/60 flex items-center justify-center p-6 fade-in" onClick={onClose}>
@@ -1261,7 +1267,7 @@ const ShareModal = ({ open, onClose, title, text, url, toast }: any) => {
         <p className="text-slate text-xs mb-5">Spread the word with family, friends, or social media.</p>
 
         <div className="space-y-2.5">
-          {navigator.share && (
+          {canShare && (
             <button onClick={handleNativeShare} className="w-full flex items-center gap-3 border border-line rounded-md p-3 text-left hover:bg-sand transition text-sm font-medium">
               <Share2 size={18} className="text-brass" />
               <span>Share via device menu</span>
