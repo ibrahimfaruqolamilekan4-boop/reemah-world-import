@@ -17,6 +17,7 @@ import { ProductCard } from "./components/ProductCard";
 import { OrderTracking } from "./components/OrderTracking";
 import { MyOrdersModal } from "./components/MyOrdersModal";
 import { MediaWrapper } from "./components/MediaWrapper";
+import { sendMockEmailNotification } from "./services/notificationService";
 
 /* ---------------------------------------------------------
    DESIGN TOKENS
@@ -1809,7 +1810,7 @@ export default function ReemahWorldImport() {
     }
   ]);
 
-  const updateOrderStatus = (orderId: string, newStatus: any) => {
+  const updateOrderStatus = async (orderId: string, newStatus: any) => {
     let targetOrder: any = null;
     setOrders(prev => prev.map(o => {
       if (o.id === orderId) {
@@ -1820,22 +1821,37 @@ export default function ReemahWorldImport() {
     }));
 
     if (targetOrder) {
+      // 1. Persist the status update to the database
+      try {
+        await fetch(`/api/orders/${orderId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus })
+        });
+      } catch (err) {
+        console.error("Failed to update order status on backend:", err);
+      }
+
+      // 2. Trigger mock email notification service
       const subject = `Reemah World Import — Order Update #${orderId}: ${newStatus}`;
       const body = `Dear ${targetOrder.customerName},\n\nYour order #${orderId} status has been updated to: ${newStatus}.\nDelivery Address: ${targetOrder.shippingAddress.street}, ${targetOrder.shippingAddress.city}.\nTotal Amount: ₦${targetOrder.totalAmount.toLocaleString()}.\n\nThank you for choosing Reemah World Import!`;
       
-      const newNotif = {
-        id: "notif_" + Date.now(),
-        orderId,
-        recipient: targetOrder.customerEmail,
-        subject,
-        body,
-        status: "Sent Successfully",
-        sentAt: new Date().toISOString()
-      };
+      const emailResult = await sendMockEmailNotification(targetOrder.customerEmail, subject, body);
+      
+      if (emailResult.success) {
+        const newNotif = {
+          id: "notif_" + Date.now(),
+          orderId,
+          recipient: targetOrder.customerEmail,
+          subject,
+          body,
+          status: "Sent Successfully",
+          sentAt: new Date().toISOString()
+        };
 
-      setEmailNotifications(prev => [newNotif, ...prev]);
-      console.log(`📧 [Mockup Email Notification Service]\nTo: ${targetOrder.customerEmail}\nSubject: ${subject}\nBody:\n${body}`);
-      toast(`📧 Confirmation email dispatched to ${targetOrder.customerEmail} (${newStatus})`);
+        setEmailNotifications(prev => [newNotif, ...prev]);
+        toast(`📧 Email dispatched to ${targetOrder.customerEmail} (${newStatus})`);
+      }
     }
   };
 
