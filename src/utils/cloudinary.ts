@@ -2,8 +2,8 @@
 
 export const getCloudinaryConfig = () => {
   const env = (import.meta as any).env || {};
-  const cloudName = (env.VITE_CLOUDINARY_CLOUD_NAME || "roheemon").trim();
-  const uploadPreset = (env.VITE_CLOUDINARY_UPLOAD_PRESET || "reehmah").trim();
+  const cloudName = (env.VITE_CLOUDINARY_CLOUD_NAME || "").trim();
+  const uploadPreset = (env.VITE_CLOUDINARY_UPLOAD_PRESET || "").trim();
   return { cloudName, uploadPreset };
 };
 
