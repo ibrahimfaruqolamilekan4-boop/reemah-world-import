@@ -8,7 +8,7 @@ export const AboutUs: React.FC = () => {
       {/* Brand Hero Story */}
       <div className="text-center space-y-6 max-w-3xl mx-auto">
         <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-purple-50 border border-purple-200 text-purple-900 text-xs font-bold shadow-sm">
-          <img src="/logo2.jpg" alt="Logo" className="w-5 h-5 rounded object-cover" />
+          <img src="/logo.jpg" alt="Logo" className="w-5 h-5 rounded object-cover" />
           <span className="font-cinzel tracking-wider">Esoteric Global Import Sanctuary</span>
         </div>
         <h2 className="text-4xl sm:text-6xl font-cinzel font-black text-slate-950 tracking-tight">
@@ -39,7 +39,7 @@ export const AboutUs: React.FC = () => {
 
         <div className="relative rounded-3xl overflow-hidden shadow-2xl border-2 border-purple-200 aspect-square bg-purple-950">
           <img
-            src="/logo2.jpg"
+            src="/logo.jpg"
             alt="Reemah World Imports Emblem"
             className="w-full h-full object-cover opacity-90 hover:scale-105 transition-transform duration-700"
           />
