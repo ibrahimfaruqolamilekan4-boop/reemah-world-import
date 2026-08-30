@@ -956,19 +956,20 @@ const ProductModal = ({ product, onClose, onAddToCart, onToggleWishlist, isWishl
   const [priceDropSubscribed, setPriceDropSubscribed] = useState(false);
   const [priceDropEmail, setPriceDropEmail] = useState("");
 
-  if (!product) return null;
-
   const rawImages = [
-    ...(product.images || []),
-    product.img,
-    product.mediaUrl,
-    ...(product.additionalImages || []),
+    ...(product?.images || []),
+    product?.img,
+    product?.mediaUrl,
+    ...(product?.additionalImages || []),
     FALLBACK_PRODUCT_IMAGE
   ];
   const validImages = Array.from(new Set(rawImages.filter((src: any) => src && typeof src === 'string' && src.trim() !== "")));
-  const videoSrc = product.videoUrl;
+  const videoSrc = product?.videoUrl;
+  
   const [modalMediaMode, setModalMediaMode] = useState<'video' | 'images'>(videoSrc && !validImages.length ? 'video' : 'images');
   const [activeModalImgIdx, setActiveModalImgIdx] = useState(0);
+
+  if (!product) return null;
 
   const productReviews = reviewsMap[product.id] || [];
 

@@ -26,6 +26,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'bank_transfer' | 'ussd' | 'mobile_money'>('card');
   const [isProcessing, setIsProcessing] = useState(false);
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
+  const [errorMessage, setErrorMessage] = useState('');
 
   if (!isOpen) return null;
 
@@ -36,8 +37,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const formatPrice = (price: number) => {
     return '₦' + price.toLocaleString();
   };
-
-  const [errorMessage, setErrorMessage] = useState('');
 
   const handleCheckoutSubmit = (e: React.FormEvent) => {
     e.preventDefault();
