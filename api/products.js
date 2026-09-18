@@ -37,16 +37,31 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  try {
-    await ensureTable();
-
-    // ── GET all products (every admin + every user sees these) ──
-    if (req.method === 'GET') {
+  // ── GET all products (every admin + every user sees these) ──
+  // Returns a bare ARRAY: the frontend guards with Array.isArray(data),
+  // so wrapping the list in { products: [...] } left the store empty for
+  // everyone on the deployed site.
+  if (req.method === 'GET') {
+    if (!process.env.DATABASE_URL) return res.status(200).json([]);
+    try {
+      await ensureTable();
       const { rows } = await pool.query(
         'SELECT data FROM neon_products ORDER BY updated_at DESC'
       );
-      return res.status(200).json({ products: rows.map((r) => r.data) });
+      return res.status(200).json(rows.map((r) => r.data));
+    } catch (err) {
+      console.error('[/api/products GET error]', err);
+      // A DB hiccup must never blank the storefront.
+      return res.status(200).json([]);
     }
+  }
+
+  if (!process.env.DATABASE_URL) {
+    return res.status(200).json({ success: true, warning: 'DATABASE_URL not configured' });
+  }
+
+  try {
+    await ensureTable();
 
     // ── POST create / update a product ────────────────────────
     if (req.method === 'POST') {

@@ -1,9 +1,19 @@
 // Cloudinary Media Upload Utility for Reemah World Imports
+//
+// Safe public defaults so uploads work even when the Vercel build is missing
+// VITE_* env vars. An unsigned upload preset is DESIGNED to be public - it can
+// only upload to this cloud, never list or delete - so nothing secret is here.
+// Empty defaults previously made every upload fail with "cloud name or upload
+// preset is missing", which is why posting appeared to do nothing.
+// TODO(user): if you ever revoke the public "reehmah" preset or the "roheemon"
+// cloud, update these defaults AND the Vercel env vars together.
+const DEFAULT_CLOUD_NAME = "roheemon";
+const DEFAULT_UPLOAD_PRESET = "reehmah";
 
 export const getCloudinaryConfig = () => {
   const env = (import.meta as any).env || {};
-  const cloudName = (env.VITE_CLOUDINARY_CLOUD_NAME || "").trim();
-  const uploadPreset = (env.VITE_CLOUDINARY_UPLOAD_PRESET || "").trim();
+  const cloudName = String(env.VITE_CLOUDINARY_CLOUD_NAME || DEFAULT_CLOUD_NAME).trim();
+  const uploadPreset = String(env.VITE_CLOUDINARY_UPLOAD_PRESET || DEFAULT_UPLOAD_PRESET).trim();
   return { cloudName, uploadPreset };
 };
 

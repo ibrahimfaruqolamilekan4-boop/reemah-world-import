@@ -1652,13 +1652,47 @@ const TemuRewardsStrip = ({ setPage, onOpenChat }) => (
   </section>
 );
 
+// Older posts (created before the media/persistence fixes) sometimes stored
+// "comments" as a number or omitted an id. Normalizing on read stops the feed
+// from crashing and guarantees every post renders for every signed-in account.
+const normalizePost = (post: any) => {
+  if (!post || typeof post !== "object") return null;
+  const rawComments = Array.isArray(post.comments) ? post.comments : [];
+  return {
+    ...post,
+    id: post.id || "post_" + (post.createdAt || Date.now()),
+    productId: post.productId || post.id,
+    caption: typeof post.caption === "string" ? post.caption : "",
+    likes: typeof post.likes === "number" ? post.likes : 0,
+    likedByMe: Boolean(post.likedByMe),
+    comments: rawComments.filter((c: any) => c && typeof c === "object"),
+    images: Array.isArray(post.images)
+      ? post.images.filter((i: any) => typeof i === "string" && i.trim() !== "")
+      : [],
+    videoUrl:
+      typeof post.videoUrl === "string" && post.videoUrl.trim() !== ""
+        ? post.videoUrl
+        : undefined,
+    createdAt:
+      typeof post.createdAt === "number"
+        ? post.createdAt
+        : Date.parse(post.createdAt) || Date.now(),
+  };
+};
+
+const normalizePosts = (list: any): any[] =>
+  (Array.isArray(list) ? list : [])
+    .map(normalizePost)
+    .filter(Boolean)
+    .sort((a: any, b: any) => b.createdAt - a.createdAt);
+
 export default function ReemahWorldImport() {
   const [products, setProducts] = useState<any[]>(() => {
     try {
       const saved = localStorage.getItem('reemah_products');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) return parsed;
       }
     } catch (e) {}
     return PRODUCTS;
@@ -1709,12 +1743,11 @@ export default function ReemahWorldImport() {
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
 
-  const [posts, setPosts] = useState(() => {
+  const [posts, setPosts] = useState<any[]>(() => {
     try {
       const saved = localStorage.getItem('reemah_posts');
       if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        return normalizePosts(JSON.parse(saved));
       }
     } catch (e) {}
     return [];
@@ -1726,14 +1759,20 @@ export default function ReemahWorldImport() {
     } catch (e) {}
   }, [products]);
 
-  // Neon Database sync so uploaded goods never disappear
+  // Neon Database sync so uploaded goods never disappear.
+  // Always overwrite local state with what the database returns -- even when it
+  // is empty -- so a stale browser cache can never hide a post that another
+  // admin/device just published. That stale-cache masking was the reason one
+  // admin could not see the other admin's uploads.
   useEffect(() => {
-    // Fetch from Neon API
     fetch('/api/products')
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           setProducts(data);
+        } else if (data && Array.isArray(data.products)) {
+          // Backwards-compat with older API builds that wrapped the list.
+          setProducts(data.products);
         }
       })
       .catch(err => console.log("Neon products fetch error", err));
@@ -1741,8 +1780,8 @@ export default function ReemahWorldImport() {
     fetch('/api/posts')
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          setPosts(data.sort((a, b) => b.createdAt - a.createdAt));
+        if (Array.isArray(data)) {
+          setPosts(normalizePosts(data));
         }
       })
       .catch(err => console.log("Neon posts fetch error", err));
