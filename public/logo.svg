@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="512" height="512" role="img" aria-label="Reemah World Imports emblem">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="34%" r="78%">
+      <stop offset="0%" stop-color="#5e1c88"/>
+      <stop offset="58%" stop-color="#4a156e"/>
+      <stop offset="100%" stop-color="#2c0e3b"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f3de90"/>
+      <stop offset="45%" stop-color="#d4af37"/>
+      <stop offset="100%" stop-color="#a9821f"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Outer brass ring -->
+  <circle cx="100" cy="100" r="97" fill="url(#gold)"/>
+  <circle cx="100" cy="100" r="89" fill="url(#bg)"/>
+  <circle cx="100" cy="100" r="83.5" fill="none" stroke="url(#gold)" stroke-width="1" opacity="0.7"/>
+
+  <!-- Top star -->
+  <polygon points="100.00,40.00 102.70,47.28 110.46,47.60 104.37,52.42 106.47,59.90 100.00,55.60 93.53,59.90 95.63,52.42 89.54,47.60 97.30,47.28"
+           fill="url(#gold)"/>
+
+  <!-- Laurel branches -->
+  <g stroke="url(#gold)" stroke-width="1.6" fill="none" opacity="0.85">
+    <path d="M42 118 C 39 132 45 146 58 156"/>
+    <path d="M158 118 C 161 132 155 146 142 156"/>
+  </g>
+  <g fill="url(#gold)" opacity="0.85">
+    <ellipse cx="41" cy="125" rx="6" ry="3" transform="rotate(-52 41 125)"/>
+    <ellipse cx="43" cy="135" rx="6" ry="3" transform="rotate(-36 43 135)"/>
+    <ellipse cx="48" cy="145" rx="6" ry="3" transform="rotate(-20 48 145)"/>
+    <ellipse cx="159" cy="125" rx="6" ry="3" transform="rotate(52 159 125)"/>
+    <ellipse cx="157" cy="135" rx="6" ry="3" transform="rotate(36 157 135)"/>
+    <ellipse cx="152" cy="145" rx="6" ry="3" transform="rotate(20 152 145)"/>
+  </g>
+
+  <!-- RWI monogram -->
+  <text x="100" y="112" text-anchor="middle"
+        font-family="Cinzel, 'Times New Roman', serif" font-size="52" font-weight="700"
+        fill="url(#gold)">RWI</text>
+
+  <!-- Divider -->
+  <g fill="url(#gold)">
+    <rect x="62" y="124" width="30" height="1.4"/>
+    <rect x="108" y="124" width="30" height="1.4"/>
+    <polygon points="100,119.5 104,124 100,128.5 96,124"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="100" y="146" text-anchor="middle"
+        font-family="'IBM Plex Mono', ui-monospace, monospace" font-size="13" font-weight="600"
+        letter-spacing="4" fill="url(#gold)">REEMAH</text>
+  <text x="100" y="161" text-anchor="middle"
+        font-family="'IBM Plex Mono', ui-monospace, monospace" font-size="6.4" font-weight="500"
+        letter-spacing="3" fill="#e9d9b6" opacity="0.85">WORLD IMPORTS</text>
+</svg>
