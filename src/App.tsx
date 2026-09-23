@@ -18,6 +18,7 @@ import { OrderTracking } from "./components/OrderTracking";
 import { MyOrdersModal } from "./components/MyOrdersModal";
 import { MediaWrapper } from "./components/MediaWrapper";
 import { sendMockEmailNotification } from "./services/notificationService";
+import { INITIAL_PRODUCTS } from "./data/initialProducts";
 
 /* ---------------------------------------------------------
    DESIGN TOKENS
@@ -130,9 +131,31 @@ const CATEGORIES = ["Kitchen", "Home Interior", "Electrical", "Fashion"];
 
 const img = (seed, w = 600, h = 600) => `https://picsum.photos/seed/${seed}/${w}/${h}`;
 
-const PRODUCTS: any[] = [];
+const PRODUCTS: any[] = INITIAL_PRODUCTS.map((p: any) => ({
+  ...p,
+  name: p.title,
+  img: p.mediaUrl,
+  images: p.additionalImages || [],
+  rating: p.ratingAverage,
+  oldPrice: p.originalPrice,
+  likes: Array.isArray(p.likes) ? p.likes : [],
+}));
 
-const seedPosts = () => [];
+// Every product always has a matching feed post so that any user, on any
+// device, sees the complete admin catalogue (old and new posts).
+const buildPostsFromProducts = (prods: any[]) =>
+  prods.map((p: any) => ({
+    id: `post_${p.id}`,
+    productId: p.id,
+    caption: `${p.title || p.name}\n\n${p.description || ""}\n\nPrice: ${NGN(p.price)}`,
+    likes: Array.isArray(p.likes) ? p.likes.length : (p.likes || 0),
+    likedByMe: false,
+    comments: [],
+    createdAt: p.createdAt ? Date.parse(p.createdAt) : Date.now(),
+    images: [p.img || p.mediaUrl, ...(p.images || p.additionalImages || [])].filter(Boolean),
+    videoUrl: p.videoUrl || undefined,
+    adminId: ADMIN_PROFILES[0].id,
+  }));
 
 const NGN = (n) => `₦${n.toLocaleString()}`;
 
@@ -629,7 +652,7 @@ const FeedPost: React.FC<any> = ({ post, product, onLike, onComment, onOpenProdu
         {product && (
           <div onClick={() => onOpenProduct(product)} role="button" tabIndex={0} className="flex items-center justify-between mt-3 bg-sand rounded-md p-2.5 w-full text-left cursor-pointer">
             <div>
-              <div className="text-sm font-medium">{product.name}</div>
+              <div className="text-sm font-medium">{product.name || product.title}</div>
               <div className="font-display text-brass font-semibold text-sm mt-0.5">{NGN(product.price)}</div>
             </div>
             <button onClick={(e) => { e.stopPropagation(); onAddToCart(product); }} className="btn-primary text-xs px-3 py-2 rounded-full font-semibold flex items-center gap-1">
@@ -788,7 +811,7 @@ const TikTokReelsCard: React.FC<any> = ({ post, product, onLike, onComment, onOp
             <div className="flex items-center gap-3">
               <img src={product.img || product.mediaUrl || FALLBACK_PRODUCT_IMAGE} alt={product.name} className="w-12 h-12 rounded-lg object-cover border border-white/20" />
               <div>
-                <div className="text-white text-sm font-semibold line-clamp-1">{product.name}</div>
+                <div className="text-white text-sm font-semibold line-clamp-1">{product.name || product.title}</div>
                 <div className="text-brass font-display font-bold text-sm">{NGN(product.price)}</div>
               </div>
             </div>
@@ -835,15 +858,16 @@ const FeedPage = ({ posts, products, search, categoryFilter, setCategoryFilter, 
     setVisibleCount(3);
   }, [categoryFilter, search, view]);
 
+  const productTitle = (p: any) => p.title || p.name || "";
   const filteredProducts = useMemo(() => products.filter(p =>
     (!categoryFilter || p.category === categoryFilter) &&
-    p.name.toLowerCase().includes(search.toLowerCase())
+    productTitle(p).toLowerCase().includes(search.toLowerCase())
   ), [products, categoryFilter, search]);
 
   const feedPosts = useMemo(() => posts.filter(post => {
     const product = products.find(p => p.id === post.productId);
     if (!product) return false;
-    return (!categoryFilter || product.category === categoryFilter) && product.name.toLowerCase().includes(search.toLowerCase());
+    return (!categoryFilter || product.category === categoryFilter) && productTitle(product).toLowerCase().includes(search.toLowerCase());
   }), [posts, products, categoryFilter, search]);
 
   const displayedProducts = filteredProducts.slice(0, visibleCount);
@@ -1066,7 +1090,7 @@ const ProductModal = ({ product, onClose, onAddToCart, onToggleWishlist, isWishl
           <div className="p-6 relative">
             <button onClick={onClose} className="absolute top-4 right-4 text-slate hover:text-navy" aria-label="Close"><X size={20} /></button>
             <div className="manifest-tag">{product.category}</div>
-            <h2 className="font-display text-2xl font-semibold mt-3 leading-tight">{product.name}</h2>
+            <h2 className="font-display text-2xl font-semibold mt-3 leading-tight">{product.name || product.title}</h2>
             <div className="mt-2 flex items-center gap-2">
               <Stars rating={product.rating} />
               <span className="text-xs text-slate font-mono">({productReviews.length} reviews)</span>
@@ -1087,7 +1111,7 @@ const ProductModal = ({ product, onClose, onAddToCart, onToggleWishlist, isWishl
               <button onClick={() => onToggleWishlist(product.id)} className="p-2.5 border border-line rounded-full hover:border-brass transition" aria-label="Toggle wishlist">
                 <Heart size={17} className={isWishlisted ? "text-brass fill-current" : "text-navy"} />
               </button>
-              <button onClick={() => onShare({ title: product.name, text: `${product.name} — ${NGN(product.price)}: ${product.desc}` })} className="p-2.5 border border-line rounded-full hover:border-brass transition text-navy" aria-label="Share product">
+              <button onClick={() => onShare({ title: product.name || product.title, text: `${product.name || product.title} — ${NGN(product.price)}: ${product.desc}` })} className="p-2.5 border border-line rounded-full hover:border-brass transition text-navy" aria-label="Share product">
                 <Share2 size={17} />
               </button>
             </div>
@@ -1726,9 +1750,9 @@ export default function ReemahWorldImport() {
     } catch (e) {}
   }, [products]);
 
-  // Neon Database sync so uploaded goods never disappear
+  // Neon/shared store sync so uploaded goods never disappear on any device
   useEffect(() => {
-    // Fetch from Neon API
+    // Fetch from the shared API (Neon when configured, server file store otherwise)
     fetch('/api/products')
       .then(res => res.json())
       .then(data => {
@@ -1736,16 +1760,22 @@ export default function ReemahWorldImport() {
           setProducts(data);
         }
       })
-      .catch(err => console.log("Neon products fetch error", err));
+      .catch(err => console.log("Products fetch error", err));
 
     fetch('/api/posts')
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
-          setPosts(data.sort((a, b) => b.createdAt - a.createdAt));
+          // Shared store has posts (new + old admin posts) — merge them into the
+          // feed so every user, on every device, sees all of them.
+          setPosts((prev: any[]) => {
+            const known = new Set(prev.map((p: any) => p.id));
+            const merged = [...prev, ...data.filter((d: any) => !known.has(d.id))];
+            return merged.sort((a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0));
+          });
         }
       })
-      .catch(err => console.log("Neon posts fetch error", err));
+      .catch(err => console.log("Posts fetch error", err));
 
     fetch('/api/orders')
       .then(res => res.json())
@@ -1756,6 +1786,33 @@ export default function ReemahWorldImport() {
       })
       .catch(err => console.log("Neon orders fetch error", err));
   }, []);
+  // Every user (new or registered, phone or laptop) must see every admin post.
+  // Any product that has no post yet gets one, so the full catalogue (old and
+  // new posts) is always visible on any device. Runs once per device.
+  useEffect(() => {
+    if (products.length === 0) return;
+    let alreadySeeded = false;
+    try {
+      alreadySeeded = localStorage.getItem('reemah_posts_seeded') === '1';
+    } catch (e) {}
+    if (alreadySeeded) return;
+    const covered = new Set(posts.map((p: any) => p.productId));
+    const missing = products.filter((p: any) => !covered.has(p.id));
+    if (missing.length === 0) {
+      try { localStorage.setItem('reemah_posts_seeded', '1'); } catch (e) {}
+      return;
+    }
+    setPosts((prev: any[]) => [...prev, ...buildPostsFromProducts(missing)]);
+    try { localStorage.setItem('reemah_posts_seeded', '1'); } catch (e) {}
+  }, [posts, products]);
+
+  // Mirror posts locally so likes/comments survive a reload
+  useEffect(() => {
+    try {
+      localStorage.setItem('reemah_posts', JSON.stringify(posts));
+    } catch (e) {}
+  }, [posts]);
+
   const [orders, setOrders] = useState(() => {
     try {
       const saved = localStorage.getItem('reemah_orders');

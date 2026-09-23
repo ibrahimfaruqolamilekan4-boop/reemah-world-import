@@ -6,3 +6,12 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Entry: chat image attachments, offloaded into the sandbox but not part of the project
+/uploads/
+
+# Shared server store (runtime posts/products/orders)
+data/
+
+# npm lockfile (project uses bun.lock)
+package-lock.json
